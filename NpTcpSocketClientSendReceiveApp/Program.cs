@@ -8,9 +8,9 @@ using Socket client = new(AddressFamily.InterNetwork,
 IPAddress address = IPAddress.Loopback;
 int port = 5000;
 
-Console.Write("Input data string: ");
-//string name = Console.ReadLine();
-string? dataString = Console.ReadLine();
+//Console.Write("Input data string: ");
+////string name = Console.ReadLine();
+//string? dataString = Console.ReadLine();
 
 try
 {
@@ -34,6 +34,22 @@ try
     //byte[] buffer = new byte[1024];
     //int bites = await client.ReceiveAsync(buffer);
     //Console.WriteLine($"Server answer in {Encoding.UTF8.GetString(buffer)}");
+    byte[] buffer;
+
+    while (true)
+    {
+        Console.Write("Input data string: ");
+        string? dataString = Console.ReadLine() + '\n';
+
+        if (dataString == "\n") break;
+        
+        buffer = Encoding.UTF8.GetBytes(dataString);
+        await client.SendAsync(buffer);
+    }
+
+    buffer = Encoding.UTF8.GetBytes("<END>");
+    await client.SendAsync(buffer);
+    
 }
 catch(Exception ex)
 {

@@ -12,7 +12,8 @@ using Socket listener = new(AddressFamily.InterNetwork,
                             SocketType.Stream,
                             ProtocolType.Tcp);
 
-char marker = '$';
+char markerPhrase = '\n';
+string markerDialoge = "<END>";
 
 try
 {
@@ -20,11 +21,13 @@ try
     listener.Listen();
     Console.WriteLine($"Server {listener.LocalEndPoint} wait...");
 
-    int count = 3;
-    while(count > 0)
+    int clientCount = 0;
+
+    while(true)
     {
         // accept client
         using var client = await listener.AcceptAsync();
+        clientCount++;
 
         // unstrategy receive data from client
         //byte[] buffer = new byte[1024];
@@ -65,7 +68,27 @@ try
         //await client.SendAsync(timeBuffer);
         //Console.WriteLine($"Server send time to client {client.RemoteEndPoint}");
 
-        count--;
+        List<byte> buffer = new();
+        byte[] byteData = new byte[1];
+
+        while(true)
+        {
+            while (true)
+            {
+                int byteCount = await client.ReceiveAsync(byteData);
+                if (byteCount == 0 || byteData[0] == markerPhrase) break;
+
+                buffer.Add(byteData[0]);
+            }
+
+            string message = Encoding.UTF8.GetString(buffer.ToArray());
+            if (message == markerDialoge) break;
+
+            Console.WriteLine($"Client {client.RemoteEndPoint}: {message}");
+            buffer.Clear();
+        }
+        Console.WriteLine("client close");
+        clientCount--;
     }
 }
 catch(Exception ex)
